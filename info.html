@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information - Multi-Step Application</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <button id="backBtn" class="btn-back">← Back</button>
+            <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+
+        <div class="info-container">
+            <div class="success-message">
+                <div class="success-icon">✓</div>
+                <h1>Success!</h1>
+                <p>Your information has been submitted successfully.</p>
+            </div>
+
+            <div class="info-box">
+                <h2 id="infoTitle">Submission Details</h2>
+                
+                <div class="info-content">
+                    <div class="user-info">
+                        <h3>User Information</h3>
+                        <p><strong>Username:</strong> <span id="displayUsername"></span></p>
+                        <p><strong>Selected Option:</strong> <span id="displayOption"></span></p>
+                    </div>
+
+                    <div class="submitted-data">
+                        <h3>Submitted Data</h3>
+                        <div id="displayData" class="data-display"></div>
+                    </div>
+
+                    <div class="submission-timestamp">
+                        <h3>Submission Information</h3>
+                        <p><strong>Submitted At:</strong> <span id="submissionTime"></span></p>
+                        <p><strong>Session ID:</strong> <span id="sessionId"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="newSearchBtn" class="btn-primary">New Search</button>
+                <button id="downloadBtn" class="btn-secondary">Download Report</button>
+                <button id="logoutFinalBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!isUserLoggedIn()) {
+                window.location.href = 'index.html';
+            }
+
+            displaySubmissionInfo();
+            setupActionButtons();
+        });
+
+        function displaySubmissionInfo() {
+            const username = sessionStorage.getItem('username');
+            const selectedOption = sessionStorage.getItem('selectedOption');
+            const formData = JSON.parse(sessionStorage.getItem('formData') || '{}');
+
+            document.getElementById('displayUsername').textContent = username || 'User';
+            document.getElementById('displayOption').textContent = formatOptionName(selectedOption);
+            document.getElementById('submissionTime').textContent = new Date().toLocaleString();
+            document.getElementById('sessionId').textContent = generateSessionId();
+
+            // Display submitted data
+            const dataDisplay = document.getElementById('displayData');
+            if (Object.keys(formData).length > 0) {
+                let dataHTML = '<ul class="data-list">';
+                for (const [key, value] of Object.entries(formData)) {
+                    if (key !== 'agreeTerms') { // Hide checkbox
+                        dataHTML += `<li><strong>${formatFieldName(key)}:</strong> ${escapeHtml(value)}</li>`;
+                    }
+                }
+                dataHTML += '</ul>';
+                dataDisplay.innerHTML = dataHTML;
+            } else {
+                dataDisplay.innerHTML = '<p>No data submitted</p>';
+            }
+        }
+
+        function formatOptionName(option) {
+            const names = {
+                'search-order': 'Search Order',
+                'inventory': 'Inventory Management',
+                'network': 'Network Information',
+                'activation': 'Service Activation',
+                'completion': 'Completion Status'
+            };
+            return names[option] || option;
+        }
+
+        function formatFieldName(field) {
+            return field
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/^./, str => str.toUpperCase())
+                .trim();
+        }
+
+        function generateSessionId() {
+            return 'SES-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function setupActionButtons() {
+            document.getElementById('backBtn').addEventListener('click', function() {
+                window.location.href = 'form.html';
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('logoutFinalBtn').addEventListener('click', logout);
+
+            document.getElementById('newSearchBtn').addEventListener('click', function() {
+                // Clear only form data, keep user logged in
+                sessionStorage.removeItem('formData');
+                sessionStorage.removeItem('selectedOption');
+                window.location.href = 'dashboard.html';
+            });
+
+            document.getElementById('downloadBtn').addEventListener('click', downloadReport);
+        }
+
+        function logout() {
+            sessionStorage.removeItem('username');
+            sessionStorage.removeItem('selectedOption');
+            sessionStorage.removeItem('formData');
+            window.location.href = 'index.html';
+        }
+
+        function downloadReport() {
+            const username = sessionStorage.getItem('username');
+            const selectedOption = sessionStorage.getItem('selectedOption');
+            const formData = JSON.parse(sessionStorage.getItem('formData') || '{}');
+
+            let report = 'SUBMISSION REPORT\n';
+            report += '==================\n\n';
+            report += `Username: ${username}\n`;
+            report += `Option: ${formatOptionName(selectedOption)}\n`;
+            report += `Submitted At: ${new Date().toLocaleString()}\n`;
+            report += `Session ID: ${document.getElementById('sessionId').textContent}\n\n`;
+            report += 'SUBMITTED DATA:\n';
+            report += '-----------------\n';
+
+            for (const [key, value] of Object.entries(formData)) {
+                if (key !== 'agreeTerms') {
+                    report += `${formatFieldName(key)}: ${value}\n`;
+                }
+            }
+
+            // Create download
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(report));
+            element.setAttribute('download', `report_${Date.now()}.txt`);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+</body>
+</html>
