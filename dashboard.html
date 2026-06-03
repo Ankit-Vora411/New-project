@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Multi-Step Application</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <h2>Dashboard</h2>
+            <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="welcome-message">
+                <h1>Welcome, <span id="userDisplay"></span>!</h1>
+                <p>Select an option to continue</p>
+            </div>
+
+            <div class="options-grid">
+                <div class="option-card" onclick="selectOption('search-order')">
+                    <div class="option-icon">🔍</div>
+                    <h3>Search Order</h3>
+                    <p>Find and track your orders</p>
+                </div>
+
+                <div class="option-card" onclick="selectOption('inventory')">
+                    <div class="option-icon">📦</div>
+                    <h3>Inventory</h3>
+                    <p>Manage your inventory</p>
+                </div>
+
+                <div class="option-card" onclick="selectOption('network')">
+                    <div class="option-icon">🌐</div>
+                    <h3>Network</h3>
+                    <p>View network information</p>
+                </div>
+
+                <div class="option-card" onclick="selectOption('activation')">
+                    <div class="option-icon">⚡</div>
+                    <h3>Activation</h3>
+                    <p>Activate your services</p>
+                </div>
+
+                <div class="option-card" onclick="selectOption('completion')">
+                    <div class="option-icon">✅</div>
+                    <h3>Completion</h3>
+                    <p>View completion status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!isUserLoggedIn()) {
+                window.location.href = 'index.html';
+            }
+            displayUsername();
+            setupLogout();
+        });
+
+        function displayUsername() {
+            const username = sessionStorage.getItem('username');
+            document.getElementById('userDisplay').textContent = username || 'User';
+        }
+
+        function setupLogout() {
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                sessionStorage.removeItem('username');
+                window.location.href = 'index.html';
+            });
+        }
+
+        function selectOption(option) {
+            sessionStorage.setItem('selectedOption', option);
+            window.location.href = 'form.html';
+        }
+    </script>
+</body>
+</html>
